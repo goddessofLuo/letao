@@ -46,7 +46,7 @@ $('#addbtn').click(function() {
             // categoryName
             var motaistr = template('motaili' ,info);
             $('.dropdown-menu').html(motaistr); 
-                
+           
         }
     })
   });
@@ -54,6 +54,9 @@ $('#addbtn').click(function() {
 $('.dropdown-menu').on('click' ,'a' , function(){
     var text = $(this).text();
     $('#dropdownText').text(text );
+    var id = $(this).data('id');
+    $('[name="categoryId"]').val(id);
+    $('#from').data("bootstrapValidator").updateStatus( "categoryId", "VALID" )
 })
 
 
@@ -65,5 +68,76 @@ $('.dropdown-menu').on('click' ,'a' , function(){
       console.log( data );
       var picUrl = data.result.picAddr; // 获取地址
       $('#imgBox img').attr("src", picUrl);
+      $('[name="brandLogo"]').val( picUrl );
+      $('#form').data("bootstrapValidator").updateStatus( "brandLogo", "VALID" )
+
     }
+  })
+
+
+
+
+//   校验
+  $('#form').bootstrapValidator({
+    // 配置不校验的类型, 对 hidden 需要进行校验
+    // excluded: [],
+
+    // 配置图标
+    feedbackIcons: {
+      valid: 'glyphicon glyphicon-ok',    // 校验成功
+      invalid: 'glyphicon glyphicon-remove',   // 校验失败
+      validating: 'glyphicon glyphicon-refresh'  // 校验中
+    },
+
+    // 配置校验字段
+    fields: {
+      categoryId: {
+        validators: {
+          notEmpty: {
+            message: "请选择一级分类"
+          }
+        }
+      },
+      brandName: {
+        validators: {
+          notEmpty: {
+            message: "请输入二级分类名称"
+          }
+        }
+      },
+      brandLogo: {
+        validators: {
+          notEmpty: {
+            message: "请上传图片"
+          }
+        }
+      }
+    }
+  });
+
+  $('#form').on("success.form.bv", function( e ) {
+    e.preventDefault();
+    $.ajax({
+        type:'post',
+        dataType:'json',
+        url:'/category/addSecondCategory',
+        data: $('#form').serialize(),
+        success:function(){
+            console.log(info);
+            if(info.success){
+                $('#addModal').modal("hide");
+                currentPage = 1;
+                render();
+
+          
+                // 重置内容和状态
+                $('#form').data("bootstrapValidator").resetForm(true);
+
+                // 由于下拉菜单 和 图片不是表单元素, 需要手动重置
+                $('#dropdownText').text("请选择一级分类");
+                $('#imgBox img').attr("src", "./images/none.png");
+            }
+            
+        }
+    })
   })
